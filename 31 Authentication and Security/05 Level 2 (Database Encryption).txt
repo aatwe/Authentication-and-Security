@@ -1,0 +1,132 @@
+//pw at server level	-> atleast cant inspect
+How to improve security?
+Encrypt: scramble message -> unscramble using key
+
+
+
+Level 2
+ We will use encryptions
+Encryption algo
+for ex
+ Caeser Cipher
+	Shift by a number of letters
+ABCDEFG
+
+Cryptii.com -> 
+Hello -> Shift 3 -> Khoor
+Is it easy to crack modern cryptography? Yes
+other encryption involving more time to crack
+___________________________________________________________
+How to encrypt passwords on our database?
+
+1) use mongoose-encryption package
+What encryption algo used? AES(modern)
+
+2) what does this package do? can encypt + authenticate
+
+3) Stop server
+	install npm i mongoose-encryption
+
+4) const encrypt = require("mongoose-encryption");
+
+5) Create a new mongoose schema object Why create new schema? We will be adding encrypt package as plugin to our new Schema
+				What new in this schema? This is created by mongoose.Schema schema class
+				//Can check documentation also
+	Earlier schema was v simple JS schema object
+	const userSchema = {
+	   email: String,
+	   password: String
+};
+----------Lets change the schema-------------------
+const userSchema = new mongoose.Schema ({
+  email: String,
+  password: String
+});
+--------------------------------------------------------
+6) How to encrypt our database ? use mongoose encryption package
+
+How to use encryption package?
+1) Create encryption key and sign in key
+var encKey= process.env.SOME_32BYTE_BASE64_STRING 
+var sigKey=  process.env.SOME_64BYTE_BASE64_STRING
+
+
+2) Define a secret	//We use this method	
+	//What is secret? long string
+  	Use secret to encrypt database
+
+var secret= process.env.SOME_LONG_UNGUESSABLE_STRING;
+userSchema.plugin(encrypt, {secret: secret});
+
+-----------------------------------------------------------------------------
+7) App.js
+//Create new schema
+const userSchema = new mongoose.Schema ({
+  email: String,
+  password: String
+});
+
+//Define secret
+const secret = "Thisisourlittlesecret";
+//How to encrypt?
+//Add mongoose encrypt plugin to schema			//note add to schema b4 creating mongoose model
+	//pass secret as JS object
+	//What are plugins? extra packaged code that we can add to schema for giving more powers extending functionality
+ userSchema.plugin(encrypt, { secret: secret}); 	//What this does? encrypts ENTIRE DB
+					//do we want to encrypt entire DB? no , have to search email
+					//only want to encrypt password field
+
+//How to encrypt only certain fields? Add encryptedFields field to JS object at end of plugin code
+	 userSchema.plugin(encrypt, { encryptionKey: encKey, signingKey: sigKey, encryptedFields:["password",]}); 		
+							//Which field we are encrypting? password
+							//add fields here as needed
+
+//No need to change app.post("/register")
+		   app.post("/login")
+
+//How does Mongoose encrypt work?
+1) encrypt when call save	//create new user with email & pass -> save					//password will be encrypted
+2) decrpyt when call find	//User.findOne(email : username)		//find document based on email	//password will be decrypted
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+TEST ENCRYPTION
+nodemon app.js
+//Register
+localhost:3000 -> Register
+	a@b.com
+	qwerty
+	//Secrets page -> 
+	//Check DB
+		users -> view documents
+			"email" : "a@b.com"
+			"_ct"     : {"$binary" : "Yxafkjhaklsjdfhlkajsfkjdjhaksdjfhald==", ":$type" : "00"},				
+				//password unguesssable
+
+TEST DECRYPTION
+/login
+localhost:3000 -> Login
+Email: a@b.com
+password: qwerty
+	//Secrets page
+
+//What is happening?
+We have to decrypt to match user provided password
+when findOne() was used -> Mongoose encrypt decrypted password
+			//Can also console.log here	//NOT V SAFE //HACKER CAN ACCESS app.js
+
+	
+app.post("/login", function(req,res){
+   const username = req.body.username;
+   const password = req.body.password;
+	
+  User.findOne({email: username},function(err, foundUser){			//When findOne() -> pw was decrypted for comparing below
+	if(err){
+	 console.log(err);
+}	else {
+	if(foundUser) {
+	  if(foundUser.password === password) {
+		res.render("secrets");
+}
+}
+}
+})
+})	

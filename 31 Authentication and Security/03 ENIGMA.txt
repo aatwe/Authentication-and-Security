@@ -1,0 +1,16 @@
+cryptii.com
+Enigma	//Secure authentication
+	encode				   decode
+Text1 ---> Enigma----->	            Text2 -----> Enigma-------------->  Text 1
+	parameter:			//Same parameter
+	reflector
+	rotor1 position  ring
+	rotor2 position  ring
+	rotor3 position  ring
+	Plugboard
+	Foreign Chars
+
+Hash	//Even more secure authentication
+
+2)	encode				   cannot decode with same hash
+Text1 ---> Hash   ----->		Text2 -----> Hash-------------->  X

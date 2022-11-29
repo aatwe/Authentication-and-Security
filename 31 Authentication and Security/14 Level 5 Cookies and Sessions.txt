@@ -1,0 +1,56 @@
+cookies similar to fortune cookies => contain message
+
+What are cookies?  small blocks of data
+		Store information on browser about user session
+		Amazon uses to track your cart
+		store id# etc 
+
+What is session? Time where user interacts with an app/server
+
+For ex add a nintendo switch to amazon basket:
+
+Cookie -> See all cookies and site data -> amazon.co.uk
+					Session token
+					Session id
+					Session-id-time
+not necessarily actual information: about what you bought
+but contain id#
+Use ID to fetch what things were added to your cart
+
+
+TEST: Close down browser --> Open amazon again --> nintendo stll in carty
+
+Whatif you delete cookie -> amazon will forget last browsing session -> cart empty
+
+Where are cookies stored? on browser
+
+Who who can store cookies ?Different websites + can share each other cookie data / Retargeting ads
+	FB knows what item i wanted on amazon => reminds	
+
+
+How cookies store data?
+1) User access amazon.com				
+2) Browser makes get request amazon server							Browser Client  ---get----->	   Server
+3) amazon server responds to get request -> (Sends HTML,CSS,JS Needed to render Amazon page)	Browser Client<--html,css,js-    Server
+4) User adds item to amazon cart : Browser makes post request to server				Browser Client----post----->    Server	
+5) Amazon server creates cookie of item in cart
+6) Amazon server responds to post request request by browser -> sends response cookie to server	Browser Client<--cookie---       Server
+7) Browser saves cookie
+
+8) User closes browser
+9) New visit by user, get request + cookie sent to server						Browser Client ---cookie--->   Server
+10) Server knows my sessions by opening cookie (previous things wanted to buy)
+	Server responds with html css JS according to my cookies data				Browser Client <---htmlcssjs-  Server
+
+
+
+What types of cookies exist?
+What is session? time for which browser intereacts with server
+When is fortune cookie created?when session starts
+When session starts? Login to website
+What is inside fortune cookie? user credentials
+	as long as we browse website -> no need to login again.
+	Why? authentication maintained by active cookie
+	
+When session close? Logout
+When is fortune cookie destroyed? When session ends

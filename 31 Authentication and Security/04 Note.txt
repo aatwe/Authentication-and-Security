@@ -1,0 +1,12 @@
+
+https://github.com/londonappbrewery/Authentication-Secrets
+Git Clone
+git log
+
+If you would like to see the code after Level 1 - Username and Password Only for example, you can simply type:
+
+git checkout 7078af837299a4ff50121d67afe17d9fa522ec68 .		//dot important
+
+into the Hyper terminal.
+
+NOTE: the dot at the end is very important, don't miss it out.

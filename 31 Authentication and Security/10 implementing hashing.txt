@@ -1,0 +1,69 @@
+1) npm i md5
+
+
+2) var md5 = require('md5')
+
+
+3) //Remove mongoose encryption and plugin
+
+
+4) const md5 = require("md5");
+
+
+5) Use hash fucntion when user registers
+	How? md5(req.body.password)
+
+app.post("/register", function(req, res){
+  const newUser = new User({
+   email: req.body.username,
+   password: md5(req.body.password)		//use hash function on user input password
+});
+newUser.save(function(err){
+  if(err){
+    console.log(err);
+} else{
+    res.render("secrets");
+}
+});
+ })
+
+app.post("/login", function(req, res){
+   const username = req.body.username;
+   cons password = md5.(req.body.password);
+
+  User.findOne({email: username}, function(err, foundUser){
+   if(err) {
+	console.log(err);
+}
+   else {
+     if(foundUser) {
+	if(foundUser.password === password){
+		res.render("secrets");
+}
+}
+}
+})
+})
+
+6) TEST:
+	Email: user@hash.com
+	Password: 123456
+	Register	//store hash
+
+User saved into DB -> 
+	users -> view documents -> email:user@hash.com
+				password: "e10adc3949ba59abbe56e05sdfsdfi",		//HASH 	//Cannot be reversed //has no encryption key
+				"_v" : 0;
+	Email: user@hash.com
+	Password: 123456
+	Login	
+	//Success page	//because hash match
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+What advantag of hashing ?
+1) user hacks into DB
+ 2) user sees "email"
+	     "password" : "ernsdf7890s7sdf9798s"		//Can only see the hash of the password 	//Cant do anything with it	
+							//no encryption key vulnerability
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+What problems with hashing though :? ?

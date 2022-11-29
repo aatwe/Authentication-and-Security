@@ -1,0 +1,78 @@
+How to save each level of security to your code? Commit at every level
+Goal:
+	Basically in app.js in Github
+	All you can see is
+	console.log(process.env.API_KEY)		//NOBODY ONLINE CAN SEE OUR API KEY
+	userSchema.plugin(encrypt, { secret: processenv.SECRET, encryptedFields: ["password"]})	//NOBODY ONLINE CAN SEE OUR SECRETS
+	
+
+
+What security flaw in github?
+	See app.js -> secrets
+	//key
+	//anybody can decrypt DB using secure key
+People crawl github looking for secret keys and api keys
+For ex dont put AWS key on github
+
+
+Where to keep our secret keys then?
+Environment variables: file keeping sensitive variables 	(encryption keys and API keys)
+
+
+How to do it using .env package
+
+
+1) install dotenv
+	npm i dotenv
+
+2) require and configure package	//Environment variable should be at top
+//at top of app.js
+//no need for const
+	require('dontenv').config();	//active and running
+
+
+3) Create .env file in root directory
+	touch .env	//hidden file
+	ls -a 		//can see
+	
+
+4) Add environment variable to file	
+	NAME = VALUE
+.env file:	//no ; or "" or const or , needed
+SECRET = Thisisourlittlesecret.
+API_KEY= shjkshkjshksjhksjh
+
+5) Use environment variable in app.js
+	console.log(process.env.API_KEY);
+
+6) TEST using env variable
+	Run app.js
+	shklshjkshjklsshjkh	//api keyy content
+
+7) Grab secret from environment variable
+	
+earlier:	
+//userSchema.plugin(encrypt, {secret: secret. encryptedFields: ["password"]}); 
+userSchema.plugin(encrypt, {secret: process.env.SECRET. encryptedFields: ["password"]}); 
+
+
+8) TEST if Secret succesfully grabbed
+a@b,com
+qwerty
+-> Secrets page	
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+should you upload environment variable file? no
+Add them to .Gitignore file
+.gitignore github
+  -> See templates
+ ->Git ignores most files in templates
+	For ex Node Modules 	: Dont commit	//why? if access package.json -> anyobody who downloads project -> pulls down dependenciesx`
+	           .env file
+
+	touch .gitignore file
+	Paste template	
+		//Atom : greyed files wont commit
+	git commit -m"Add Environment Vars
+	git push -u origin master

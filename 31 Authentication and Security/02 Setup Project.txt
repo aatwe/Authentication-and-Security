@@ -1,0 +1,114 @@
+PROJECT STRUCTURE
+Secrets
+	public	
+		css
+			styles.css
+	views
+		partials
+			footer.ejs
+			header.ejs
+		home.ejs
+		login.ejs
+		register.ejs
+		secrets.ejs
+		submit.ejs
+	.DS_Store
+	app.js
+
+
+1) home.ejs
+	Secrets header
+	Paragraph: Dont keep your secrets, share anonym	
+	2 buttons: register and login
+2) login.ejs
+	Login Form
+	<formaction="/login" method="POST">		/form makes post request where? login route
+	<div class="form-group">
+	  <label for"email">Email</label>
+	<input type="email" class="form-control" name="username">
+	<div class="form-group">
+	  <label for"password">Password</label>
+	<input type="password" class="form-control" name="password">
+	</div>
+	<button type = "submit" class="btn btn-dark">Login</button>
+	</form>
+	</div>
+	<button type="submit" class="btn btn-dark">Login</button>	//Why submit button-> send post request to login route to server
+	</form>
+	</div>
+	</div>
+	</div>
+
+3) register.ejs
+	Registration form
+	<formaction="register" method="POST">
+	<div class="form-group">
+	  <label for"email">Email</label>
+	<input type="email" class="form-control" name="username">
+	<div class="form-group">
+	  <label for"password">Password</label>
+	<input type="password" class="form-control" name="password">
+	</div>
+	<button type = "submit" class="btn btn-dark">Login</button>
+	</form>
+
+
+What after you have registered /login successfully?
+	Access the secrets page
+
+4) secrets.ejs	
+	//NEEDS AUTHENTICATION
+	//CAN BE ACCESSED ONLY IF USER HAS LOGGED IN
+	//message showing you are on secrets page
+	//2 buttons Log out, submit a secret
+
+5) submit.ejs
+	//HAS FORM to submit secret using POSTrequest to submit route
+	<form action="/submit" method="POST">
+	</form>
+
+6) app.js	//For server
+	//basic modules
+	express
+	bodyParser
+	ejs
+	app.use(express.static("public")); 	..Added public folder as static resource
+	app.set('view engine', 'ejs');
+	app.use(bodyParser.urlencoded({
+	  extended:true
+	}))
+	app.listen(3000,function(){
+	  console.log("Server started on port 3000");
+
+	app.get("/" function(req,res){
+	 res.render("home");
+
+	app.get("/login" function(req,res){
+	 res.render("login");
+
+	app.get("/register" function(req,res){
+	 res.render("register");
+
+});
+
+
+})
+
+
+7) install packages
+	cd Desktop
+	npm init -y
+	npm i express ejs body-parser
+	//Package.json is updated
+
+8) TEST
+	nodemon app.js
+	localhost:3000
+	//Can see icon and register and login button
+	front page is home
+	click register button -> makes get request and opens localhost:3000/register page
+	click login page	 ->  makes get request and opens localhost:3000/login  page
+
+What now
+check if user is registered/logged in -> to show secrets page
+DO AUTHENTICATION

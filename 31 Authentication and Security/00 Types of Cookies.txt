@@ -1,0 +1,3 @@
+session cookies : in memory, expire after browser exit 
+persistent cookies: have time to live , persist on disk
+	sent by browser till time to live is not over

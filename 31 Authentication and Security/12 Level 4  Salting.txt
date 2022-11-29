@@ -1,0 +1,20 @@
+How to prevent hash table cracks attacks/ dictionary attacks
+
+
+SALTING
+What is salting?
+				hashfn
+password + random set of characters --------> HASH
+		//unique salt
+
+
+For ex
+PW	Salt			Hash
+qwerty	67hgdhj89HDG		457sdfsdfs78976876s9df
+
+For similar passwords also -> hash will be different because different salt is different
+
+Where is salt? stored in DB, User need not remember
+
+But GPU Speed: 20Billion Hashes/Second
+Solution? BCrypt Hashing algorithm

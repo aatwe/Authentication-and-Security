@@ -1,0 +1,56 @@
+3rd Party Login
+ OAtuh
+What is OAuth? Open standard for token based Authorization
+
+Objective: new user on bracebook -> no friends
+	Check his fb friends who are on bracebook
+	recommend them
+
+	GET
+FB	<-----		BB
+
+
+1) BB makes GET Request to Facebook asking for user friend table
+2) FB sends POST request user friend table to bracebook with list users and emails
+3) find matching users from that table
+
+For ex linkeidn finds contact from gmail 
+
+How to do this? OAuth
+
+
+Big tech: Keeps our passwords secure (Good Engineers )
+so delegate them the task of authenticating
+
+Log on FB -> FB will authenticate securely -> FB verifies and sends back permission to authenticate
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+1) Why OAuth? 
+		A) Alllows granular level access
+			Granular = developer can request what data he needs
+			How granular? if making x website -> need only email + profile
+				         if making tinder       -> need friends + email + profile
+		B) Read/Read + Write Access
+			Read access = read data from fb
+`			write access = write data to facebook on behalf of y website
+
+		C) FB(3rd party) user can revoke access from FB itself
+
+2) How OAuth works
+	A) Setup your app 
+		Tell 3rd party about our webapp
+		How to tell?
+		Set up App in 3rd party developer console, Become client
+	`	Get app id / client id
+		
+	B) Redirect to 3rd party to Authenticate
+		take to actual website to login		(How to make others trust? take to genuine reference )
+		User logins
+	C) User Grants permissions requested by website	
+		ex profile + email
+
+	D) third party sends Authorization OR access token code to our website
+				Authorization : One Time	//just for authentication
+				Access token : : Valid longer 	//granular access to information
+		User sign in at 3rd party verified on our website
+			

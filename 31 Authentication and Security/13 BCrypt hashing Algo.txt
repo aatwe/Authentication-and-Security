@@ -1,0 +1,130 @@
+Industry standard algo 
+keep user password safe
+Developer use
+
+Latest GPUs can only do : 17000 bcrypt Hashes/second
+
+
+ Salted Hash table ->
+	MD5 : 3 seconds
+	Bcrypt: 8 months
+
+
+Also uses Salt rounds
+What are salt rounds?
+	for ex
+Salt round 1
+	PW	Salt1	      
+	qwerty + 28891 ===>  Hash1
+
+Salt round 2
+	PW	Salt1	      
+	Hash1  + 28891 ===>  Hash2
+	....		       ....final Hash
+How salt round help? 
+if moore law computation icnreases with increase in years
+	We increase no. of salt rounds as well
+	//Dont have to change algo 	//Dont have to update code
++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Implement BCrypt + Salting rounds into website authentication
+
+1)What package for Bcrypt? bcrypt
+different bcrypt version for different node version	(supports stable versions)
+//Get latest stable version
+How to reduce version of node? nvm -> install -> restart -> nvm --version
+				nvm install 10.15.0
+
+ 
+2) npm i bcrypt
+	
+	if warnings -> check npm github repo ->Github -> issues with repo -> see messages ->  says lower version ok
+	npm i bcrypt@3.0.2
+
+3) app.js Code for bCrypt:
+//Require bcrypt
+	const bcrypt=  require("bcrypt")
+
+//define no. of salt rounds
+	const saltrounds = 10;
+
+ 4) //How to use bcrypt inside register post route to hash ?	bcrypt.hash(myPlaintextPassword, saltRounds, function(err,hash){
+})
+app.get("/register", function(req,res){
+   res.render("register");
+});
+
+app.post("/register", function(req,res){
+//use bcrypt
+bcrypt.hash(req.body.password, saltRounds, function(err,hash){
+ 
+	
+ //Create new user from model 					//Create user only when hash generated
+ const nerwUser = new User({
+   email: req.body.username,
+   password: hash							///use hash we got from callback
+  
+});
+//Save new user
+newUser.save(function(err){
+  if(err) {
+	console.log(err);
+}  else{
+	res.render("secrets");
+}
+})
+})
+})
+
+4) TESTING
+node app.js
+server started on port 3000
+
+localhost:3000/register
+Email: user@bcrypthash.com
+Password: 123456
+->Register
+//Secret Page
+
+Check DB
+email: 		user@bcrypthash.com
+password:	"asdfhkljasdhfl2198asdifu34jkdfshkljsdhlksjdfg89704989"	//Hash generated using Decrypt + 10 rounds of salting
+Try googling hash -> wont find					//quite long pw	difficult to discern user's password
+
+
+5) //How to use bcrypt inside login post route to compare?	bcrypt.compare(myPlaintextPassword, hash, function(err,hash){
+})
+app.get("/login", function(req,res){
+   res.render("register");
+});
+
+app.post("/login", function(req,res){
+
+//get user name and password from user
+const username = req.body.username;
+const password = req.body.password;
+
+
+//Search through DB
+User.findOne({email: username}, function(err, foundUser){		//filter through email
+if(err) {
+   console.log(err);
+} else {
+   if(foundUser){
+	bcrypt.compare(password, foundUser.password, function(err, result){		//What password? we get from request  //compare against? hash stored in database					
+														//How to get hash stored inDB? foundUser.password
+										//What is result? result of bycrypt.compare()-> not confuse with res, hence named result
+ 	if(result === true){	//i.e if password entered = hash from DB
+		res.render("secrets");				
+	}
+});}
+}
+}
+});
+});
+
+6) Test Login
+localhost:3000/login
+Email: user@bcrypthash.com
+Password: 123456
+-> Secrets page -> //Comparison is successful		//Dcrypt + 10 round of salting -> massively secure DB

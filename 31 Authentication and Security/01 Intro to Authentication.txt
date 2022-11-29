@@ -1,0 +1,21 @@
+1) Why Autthenticate?
+  	1) Login
+	Users generate data
+	How to associate data with users? Account ()	//Why account? uniquely identify
+	
+	2) Restrict access	
+	subscription
+	login and password is easy
+	How to make secure?
+
+How to Authenticate?
+Whisper App Example
+
+	Home page 
+ 	/	\
+Register		Login
+	\	/
+	Secrets Page
+
+
+We will see levels of authentication

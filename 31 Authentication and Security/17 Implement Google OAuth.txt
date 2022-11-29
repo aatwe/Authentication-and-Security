@@ -1,0 +1,332 @@
+1) Install passport Google oauth
+ 
+Passportjs.org -> Strategies ->
+	passport-google-oauth	
+	passport-google-oauth2.0 
+
+hyper terminal
+npm install passport-google-oauth	
+
+
+
+2) Create application on Google Developer console
+	New Project : Secret
+	
+	Credentials: OAuth consent screen	(screen when 3rd party granting access) Help FB identify our website
+	Project name
+	App Logo
+	
+	Default Scopes for Google APIs (free)	//visible on grant screen
+	email:
+	profile:
+	openId:
+
+	//How to add more scopes? Google API Library
+				Maps API : Where user has been	
+				Gmail API: Emails user have in draft
+				Youtube API :: What youtube videos user is watching
+				People API : What contacts user has
+	
+	Add your domain etc
+	SAVE
+	Create Credentials:	
+		API Key
+		Service Account Key
+		OAuth client ID	//allows to authenticate using google
+			Application Type: Web Application/Android/Chrome/iOS
+				Name : Secrets
+				Authorized JavaScript origins: //Where will request come from
+							 http://localhost:3000
+				Authorized redirect URls 	: http://localhost:3000/auth/google/secrets		
+
+	//Create Client ID button	//Keep them secret in .env file
+		
+		Client ID: 3861723-mur2afdjbasdufhk.apps.googleusercontent.com
+		Client secret: 42323GJHhkjhkjadfh34	
+		
+		.env File
+		CLIENT_ID = 3861723-mur2afdjbasdufhk.apps.googleusercontent.com
+		Client secret = 42323GJHhkjhkjadfh34	
+
+
+3)
+ a) Configure strategy
+  b) setup google strategy	//shouldnt be before session otherwise wont save the user login session
+  c) Google sends access token via callback
+	ascess token: gets us data
+	profile: with email + id + etc all we asked
+      Use data we got back to find user with that id in user database/ create	(findorCreate)
+	npm install mongoose-findorcreate
+	add as a plugin to our schema	//userSchema.plugin(findOrCreate);
+	
+ d) Get buttons for logging in through Google (Frontend)	/?We get a button : Sign up with Google
+	views -> register.ejs
+		login.ejs	//identical btns
+
+		<div class="col-sm-4">
+		  <div class="card social-block">
+		   <div class="card-body">	
+		    <a class="btn btn-block" href="/auth/google" role="button">
+		     <i class="fab fa-google"></i>
+			Sign Up With google
+		    </a>
+		</div>
+	          </div>
+	   </div>
+
+	What happesn when user clicks button -> Get request made to path /auth/google	->Add this route
+	
+  e) add route  /auth/google
+		//Authenticate with Google Strategy
+		/similar to how we did with local strategy
+		//Shows how passport can be used flexibly 	//just switching strategies to authenticate
+		+ provide scope
+		// passport.authenticate("google", {scope: ['profile']});					//THIS WILL BRING POP UP	
+		//Tells to
+			a) use passport with Google strategy new GoogleStrategy => Help google recognize our app
+			b) tell google we want user profile: Email + User ID
+
+   f) TEST
+	localhost:3000/register
+	SignUp With Google
+	accounts.google.com opens -> Login to your account
+		Error: cannot GET /auth/google/secrets		//Authorized redirect URL
+		This URL is not setup yet
+	
+  g) Setup Authorized redirect URL	//below /auth/google
+	app.get(' /auth/google/callback',
+	  passport.authenticate('google', {failiureRedirect: '/login' }),	//Authenticate user locally
+	    function(req,res) {
+		res.redirect
+}
+)
+
+  h) log profile and check what we get from  Googlestratefy callback
+	Get a json in console
+		id for user, displayName,photos,
+		We will use this user id we got from Google strategy callback
+		//why save this id in database? to identify user on next login
+
+	Sign up with google btn ==> Initiate authentication on google server => ask for profile => google redirect back to website => get request to /auth/google/secrets => authenticate locally => save login session => secrets
+
+	localhost:3000/register -> Sign up w google -> Error: Failed to serialize user into session
+		//package.seriqlizer code comes from package ->passport-local-mongoose
+			But actual passport documentation serializer : little longer -> works for all different strategies (not just local)
+				
+		//Works after adding new serializers
+	//Secrets page
+
+   i) Check new user created
+	Robo3T -> users ->
+		_id:  objectId("324798ysdf98")		//This is MongoDB auto generated id
+		_v					//earlier we had user email, hash , salt etc
+	WHERE IS ALL INFO? How to link this new register user with Google profile id
+		//Try log out->login again -> another new user created //not being linked
+
+   j) What are we doing after getting back data from Google?
+	log profile	
+	findOrCreate in our database
+		How are we creating in database? based on field googleid
+
+	function(accessToken, refreshToken, profile, cb) {			//Google sends back access token
+   	console.log(profile);						//Try logging profile
+   	User.findOrCreate({ googleId: profile.id}, function(err,user){
+   	 return cb(err,user);
+   	 })
+   	}
+
+	But do we have googleId in collection of users?NO! our schema has only email and password
+      Solution
+	Add new field googleId
+	Finds/creates this googleId on our database and link profile data
+	
+      TEST:
+	App.js ->LogOut => Register -> Signup with google
+	Robo3T -> users -> view documents
+		id: objectId("324798ysdf98")
+		googleid: 4628347629387		//unique google user
+		_v: 0				//WE DONT GET PASSWORD
+	Try logout -> log in again -> Secrets
+		//no new user created
+
+	Try logout -> Register -> Secrets
+		//still same user
+
+	Why we dont get password? Google responsibility
+
+
+  k) Style up your button
+	Social buttons for Bootstrap
+		bootstrap-social.css	-> paste in public-> css
+
+	put above your custom stylesheet in header.ejs
+	add btn-social to classes
+	//just adding btn-facebook or btn-google will create now
+
+  l) NOTE:
+	Logout of website wont log out of google account	Why? when we hit secrets route in code after .isauthenticated
+	for that we need button which will redirect to: accounts.google.com/logout
+	But this logs user off all google services, not wanted generally
+	WE NEED SESSION TO PERSIST FOR USER LOGIN FOR OUR WEBSITE
+	NO WORRY ABOUT LOGGING OUT OF GOOGLE
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+var GoogleStrategy = require('passport-google-oauth20').Strategy;
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+require('dotenv').config();
+const express = require("express");
+const bodyParser = require("body-parser");
+const ejs = require("ejs");
+const mongoose = require("mongoose");
+const session = require('express-session');
+const passport = require("passport");
+const passportLocalMongoose = require("passport-local-mongoose");
+const GoogleStrategy = require('passport-google-oauth20').Strategy;		//User oAuth package as a strategy
+const findOrCreate = require('mongoose-findorCreate');
+
+const app = express();
+
+app.use(express.static("public"));
+app.set('view engine', 'ejs');
+app.use(bodyParser.urlencoded({
+   extended:true
+}))
+
+//Setup session package here before mongo connect
+app.use(session({
+  secret: "Our little secret. "	//We keep this in environment file but workaround rn 
+  resave: false,		//documentation
+  saveIninitialized: false	//documentation
+}))
+
+//initialize session	//Check passport configure documentation
+app.use(passport.initialize());
+app.use(passport.session());
+
+
+mongoose.connect("mongodb://localhost:27017userDB", {useNewUrlParser: true});
+mongoose.set(:useCreateIndex", true);	//for Deprecation warning
+const userSchema = new mongoose.Schema ({
+  email: String,
+  password: String
+  googleId: String			//Add GoogleId for linking database user to authenticated / profile user id
+});
+
+//Plugin to Hash and Salt passwords	//Save users in mongoDB database
+userSchema.plugin(passportLocalMongoose);	
+userSchema.plugin(findOrCreate);
+
+const User = new mongoose.model("User", userSchema)
+
+//Passport Local configurations	//
+passport.use(User.createStrategy());
+
+//Replace below serializers with updated serializers
+/*passport.serializeUser(User.serializeUser());	//Creates fortune cookie, puts message
+//passport.deserializeUser(User.deserializeUser());  // Passport can decrumble cookiie and discover mesage*/
+passport.serializeUser(function(user,done){
+
+}0
+passport/deserializeUser(function(id, done){
+  User.findById(id, function(err,user){
+	done(err, user);
+})
+})
+
+
+//Setup Google Strategy //Documentation
+
+passport.use(new GoogleStrategy({
+   client_ID: process.env.CLIENT_ID,
+   clientSecret: process.env.CLIENT_SECRET
+   callbackURL: "http://localhost:3000/auth/google/secrets",
+    userProfileURL: 'https://www.googleapis.com/oauth2/v3/userinfo'	//google+ Deprecation fix	//info will be retrieved from userinfo endpoint //code now future proof
+}),
+function(accessToken, refreshToken, profile, cb) {			//Google sends back access token
+   console.log(profile);						//Try logging profile
+   User.findOrCreate({ googleId: profile.id}, function(err,user){		//Finds/Creates user based on googleId
+    return cb(err,user);
+    })
+   }
+));
+
+app.get("/auth/google", function(res,res){
+  passport.authenticate("google", {scope: ['profile']});				//Authenticate with Google Strategy	//similar to how we did with local strategy
+})
+
+app.get(' /auth/google/secrets',						//Authorized redirect URL
+	  passport.authenticate('google', {failiureRedirect: '/login' }),	//Authenticate user locally
+	    function(req,res) {
+		res.redirect("/secrets");
+
+app.get("/", function(req,res){
+   res.render("home");
+})
+
+app.get("/login", function(req,res){
+  res.render("login");
+});
+
+
+app.get("/register", function(req,res){
+  res.render("register");
+})
+
+//Create secrets route this time
+app.get("/secret", functon(req,res){
+  if(req.isAuthenticated()){
+	res.render("secrets");
+}else {
+    res.redirect("/login");	//login first before viewing secrets page
+}
+})
+
+//Logout Route
+app.get("/logout", function(req,res){
+  req.logout();
+  res.redirect("/");
+});
+
+
+ 
+app.post("/register" function(req,res){
+ User.register({username: req.body.username}, req.body.password, function(err, user){
+	if(err{console.log(err);
+	res.redirect("/register");
+	} else {
+	passport.authenticate("local")(req, res, function(){	//authenticate our user	//logged in
+							//Succesfully registered
+	  res.redirect("/secrets");	//we didnt have secrets route before.why? we res.render("secrets") through register or login
+				//Why redirecting not rendering? if user goes direct to secrets page, they should automatically be able to see it  		
+				//User is already logged in
+})
+})
+})				//tap into User model	//register is method from passport local mongoose package
+				/?Why we need package? to avoid creating our user and interact with mongoose direct
+});				//Once user successfully registered AND succesfully logged in
+				Using right credential -> send cookie and tell browser to hold cookie
+				//Why browser holds cookie? cookie has information that tells server about user
+				i.e req.isAuthenticated() -> info that tells is the user authenticated
+
+
+
+app.post("/login", function(req,res){
+
+//Create new user in DB
+  const user = new User ({
+   username: req.body.username 
+   password: req.body.password
+})
+
+//How to login this user and authenticate? Passport
+req.login(user, function(err){
+  if(err) {
+     console.log(err);
+} else {
+     passport.authenticate("local")(req,res,function(){				//Successfully logged in
+         res.redirect("/secrets");	//Check in secrets route if authenticated or not
+})
+}
+} )
+})

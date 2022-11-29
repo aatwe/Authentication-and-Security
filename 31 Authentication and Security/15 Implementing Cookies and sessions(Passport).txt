@@ -1,0 +1,190 @@
+How will we implement cookies and sessions? Passport
+
+Passport: Helps authenticate users (Locally: Username + pass or Google/FB/Twitter authentication)
+
+
+Objective:  User does not want to keep logging back
+		Make a website remember when user is already logged in
+		Add cookie and session to your app		'//Code Order imp here
+
+1) Install packages
+	passport
+	passport-local
+	passport-local-mongoose
+	express-session		(!sessions)
+
+	//How to find right one?
+	Check popularity/quality/maintenance	//we want high one
+2)  npm i passport passport-local passport-local-mongoose express-sessions
+
+3) //important where code placed
+    //Call session and pass : secret, resave,saveUnitialized 
+    Setup session
+
+4) Initialize passport
+    Use passport to manage session
+
+5) Setup Schema to use passportlocalmongoose as plugin
+
+6) create local login strategy
+7) Setup serialize and Deserialize passport
+8) setup register and login post route
+
+const session = require('express-session');
+const passport = require("passport");
+const passportLocalMongoose = require("passport-local-mongoose");
+
+const app = express();
+
+app.use(express.static("public"));
+app.set('view engine', 'ejs');
+app.use(bodyParser.urlencoded({
+   extended:true
+}))
+
+//Setup session package here before mongo connect
+app.use(session({
+  secret: "Our little secret. "	//We keep this in environment file but workaround rn 
+  resave: false,		//documentation
+  saveIninitialized: false	//documentation
+}))
+
+//initialize session	//Check passport configure documentation
+app.use(passport.initialize());
+app.use(passport.session());
+
+
+mongoose.connect("mongodb://localhost:27017userDB", {useNewUrlParser: true});
+mongoose.set(:useCreateIndex", true);	//for Deprecation warning
+const userSchema = new mongoose.Schema ({
+  email: String,
+  password: String
+});
+
+//Plugin to Hash and Salt passwords	//Save users in mongoDB database
+userSchema.plugin(passportLocalMongoose);	
+
+const User = new mongoose.model("User", userSchema)
+
+//Passport Local configurations	//
+passport.use(User.createStrategy());
+
+passport.serializeUser(User.serializeUser());	//Creates fortune cookie, puts message
+passport.deserializeUser(User.deserializeUser());  // Passport can decrumble cookiie and discover mesage
+
+app.get("/", function(req,res){
+   res.render("home");
+})
+
+app.get("/login", function(req,res){
+  res.render("login");
+});
+
+
+app.get("/register", function(req,res){
+  res.render("register");
+})
+
+//Create secrets route this time
+app.get("/secret", functon(req,res){
+  if(req.isAuthenticated()){
+	res.render("secrets");
+}else {
+    res.redirect("/login");	//login first before viewing secrets page
+}
+})
+
+//Logout Route
+app.get("/logout", function(req,res){
+  req.logout();
+  res.redirect("/");
+});
+
+
+ 
+app.post("/register" function(req,res){
+ User.register({username: req.body.username}, req.body.password, function(err, user){
+	if(err{console.log(err);
+	res.redirect("/register");
+	} else {
+	passport.authenticate("local")(req, res, function(){	//authenticate our user	//logged in
+							//Succesfully registered
+	  res.redirect("/secrets");	//we didnt have secrets route before.why? we res.render("secrets") through register or login
+				//Why redirecting not rendering? if user goes direct to secrets page, they should automatically be able to see it  		
+				//User is already logged in
+})
+})
+})				//tap into User model	//register is method from passport local mongoose package
+				/?Why we need package? to avoid creating our user and interact with mongoose direct
+});				//Once user successfully registered AND succesfully logged in
+				Using right credential -> send cookie and tell browser to hold cookie
+				//Why browser holds cookie? cookie has information that tells server about user
+				i.e req.isAuthenticated() -> info that tells is the user authenticated
+
+
+
+app.post("/login", function(req,res){
+
+//Create new user in DB
+  const user = new User ({
+   username: req.body.username 
+   password: req.body.password
+})
+
+//How to login this user and authenticate? Passport
+req.login(user, function(err){
+  if(err) {
+     console.log(err);
+} else {
+     passport.authenticate("local")(req,res,function(){				//Successfully logged in
+         res.redirect("/secrets");	//Check in secrets route if authenticated or not
+})
+}
+} )
+})
++++++++++++++++++++++++++++++++++++++++++++++++++++++
+TEST APP
+0) mongoDB server is still running
+1) nodemon app.js
+2) Check registratioon section
+	localhost:3000/register
+	Email: user@passportlocalmongoose.com	
+	Password: 123456
+	Register //Secrets page
+
+	Robo3T -> view document in users collection
+	  id: user@passportlocalmongoose.com
+//Passport local mongoose will salt and hash our password for us automatically
+	  salt : fakjsdhfkasuf98df089f0a9sd8f-0 
+	  hash : dfahskdf9a8u7f9a8sd7f089df0a
+
+3) What if we directly now access secrets page? (Cookie)
+	Renders without logging in again
+	Why renders? we already authenticated
+			session id saved cookie
+
+4) Track that cookie
+	Chrome -> cookie -> See all cookies ->localhost
+	  connect.sid cookie
+	//when will this cookie expire? when browsing session ends
+
+5) Quit chrome -> session ends -> cookie expires -> localhost:3000/secrets -> Not authenticated anymore 
+
+
+6) Check login
+    localhost:3000 -> Go to Home page -> Login
+	user@passportlocalmongoose.com	
+	123456
+	//Secrets page
+	//note when we click logout button / access localhost:3000/logout -> Cannot GET /logout
+		//button hits route with href="/logout"
+7) Add and Test logout route
+   localhost:3000/login
+	Email: user@passportlocalmongoose.com
+	Password : 123456
+	-> Login
+	-> Logout	
+	//home page
+	//Try accessing secrets page direct to -> localhost:3000/login
+
+	//note when code updated -> server restarts -> cookie deleted -> session restarted
